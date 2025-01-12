@@ -1,162 +1,23 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+from ttkthemes import ThemedTk
 from quests import QUESTS
 from skills import SKILLS
 from utils.weights import calculate_weights
 import random
+import os
+
+CONFIG_FILE = "config.txt"
 
 def generate_plan():
-    plan = []
-    error_messages = []
-    current_levels = {skill: 1 for skill in SKILLS}  # Start at level 1 for all skills
-
-    # Get the tasks from the user's selections
-    tasks = []
-    for skill, var in skill_vars.items():
-        target_level = var.get()
-        if target_level:
-            tasks.append({"type": "skill", "name": skill, "level": int(target_level)})
-
-    for quest_key, var in quest_vars.items():
-        if var.get():
-            tasks.append({"type": "quest", "name": quest_key})
-
-    # Sort tasks based on dependencies
-    ordered_tasks = []
-    while tasks:
-        added = False
-        for task in tasks:
-            if task["type"] == "quest":
-                quest_data = QUESTS[task["name"]]
-                can_add = True
-                for dep in quest_data.get("quests", []):
-                    if {"type": "quest", "name": dep} not in ordered_tasks:
-                        can_add = False
-                        break
-                if can_add:
-                    ordered_tasks.append(task)
-                    tasks.remove(task)
-                    added = True
-            elif task["type"] == "skill":
-                skill_name = task["name"]
-                
-                # Use default method if specific method is not selected
-                if not any(method_vars.get(skill_name, {}).get(m, {}).get("selected", False) for m in method_vars.get(skill_name, {})):
-                    method = "default"
-                else:
-                    # Find the selected method
-                    for m, data in method_vars.get(skill_name, {}).items():
-                        if isinstance(data, dict) and data.get("selected", False):
-                            method = m
-                            break
-                
-                can_add = True
-                
-                # Check skill requirements for the chosen method
-                for method_data in SKILLS[skill_name]["methods"].values():
-                    if method == method_data.get("name", "").lower():
-                        if "requirements" in method_data:
-                            for req_skill, req_level in method_data["requirements"].items():
-                                if req_skill in current_levels and current_levels[req_skill] < req_level:
-                                    can_add = False
-                                    error_messages.append(f"Error: '{method}' requires {req_skill.capitalize()} level {req_level} but current level is {current_levels[req_skill]}.")
-                                    break
-                        break
-                
-                if can_add:
-                    ordered_tasks.append(task)
-                    tasks.remove(task)
-                    added = True
-            
-            if not added:
-                # If a task couldn't be added due to unmet dependencies or missing method
-                error_messages.append(f"Error: Unable to add task '{task['name']}' due to unmet dependencies or invalid method selection.")
-                tasks.remove(task)
-                added = True
-
-    # Display errors if any
-    if error_messages:
-        error_text.delete("1.0", tk.END)
-        for msg in error_messages:
-            error_text.insert(tk.END, msg + "\n")
-        return
-    
-    # Generate plan steps based on ordered tasks
-    for task in ordered_tasks:
-        if task["type"] == "skill":
-            skill = task["name"]
-            target_level = task["level"]
-
-            # Check if a specific method is selected for the skill
-            if skill.lower() in method_vars:
-                for method_name, method_data in method_vars[skill.lower()].items():
-                    if method_name == "selected":
-                        continue
-
-                    if isinstance(method_data, dict) and method_data.get("selected", False):
-                        chosen_method = method_name
-                        break
-                else:
-                    # If no specific method is selected, use the default method
-                    chosen_method = SKILLS[skill.lower()]["default_method"]
-            else:
-                # If the skill is not in method_vars, use the default method
-                chosen_method = SKILLS[skill.lower()]["default_method"]
-
-            # Determine valid methods and their weights
-            valid_methods = []
-            weights = {}
-            
-            if chosen_method == "agility" and method_vars["Agility"]["selected"].get():
-                valid_methods = [
-                    method
-                    for method in method_vars["Agility"]
-                    if method != "selected" and method_vars["Agility"][method].get()
-                ]
-                weights = {method: int(method_vars["Agility"][method].get() or 0) for method in valid_methods}
-            elif chosen_method in combat_methods and method_vars[chosen_method]["selected"].get():
-                valid_methods = [
-                    skill for skill, settings in method_vars[chosen_method].items() if isinstance(settings, dict) and settings["selected"].get()
-                ]
-                weights = {
-                    skill: int(settings["weight"].get() or 0)
-                    for skill in valid_methods
-                    if isinstance(settings, dict) and "weight" in settings and settings["selected"].get()
-                }
-            else:
-                # Use the default method
-                valid_methods = [chosen_method]
-                weights = {chosen_method: 1}
-
-            # Calculate weights, apply bonuses, and consider milestones
-            weights = calculate_weights(current_levels, method_vars, skill, chosen_method)
-
-            # Select a method based on weights
-            total_weight = sum(weights.values())
-            random_choice = random.uniform(0, total_weight)
-            cumulative_weight = 0
-            chosen_method = None
-            
-            for method, weight in weights.items():
-                cumulative_weight += weight
-                if random_choice <= cumulative_weight:
-                    chosen_method = method
-                    break
-
-            # Update plan
-            plan.append(f"Train {skill} to level {current_levels[skill] + 1} using {chosen_method}")
-
-            # Increment the current level
-            current_levels[skill] += 1
-
-        # ... (Handle quest tasks)
-
-    # Display the plan
+    """
+    Placeholder function for generating the plan.
+    """
     output_text.delete("1.0", tk.END)
-    for step in plan:
-        output_text.insert(tk.END, step + "\n")
+    output_text.insert(tk.END, "Plan generation logic will be added here.\n")
     error_text.delete("1.0", tk.END)
+    error_text.insert(tk.END, "No errors.\n")
 
 def copy_to_clipboard():
     """Placeholder for the copy to clipboard logic."""
@@ -188,11 +49,38 @@ def open_agility_methods():
     # Set transient property to keep window on top
     agility_methods_window.transient(root)
 
-    for method in SKILLS["agility"]["methods"]:
-        if method != "default":
+    # Loop through agility methods
+    for method_name, method_data in SKILLS["agility"]["methods"].items():
+        if method_name != "default":  # Skip the default method
             method_var = tk.BooleanVar(value=False)
-            method_vars["Agility"][method] = method_var
-            tk.Checkbutton(agility_methods_window, text=method.capitalize(), variable=method_var).pack(anchor="w")
+            method_vars["Agility"][method_name] = method_var
+            check_button = ttk.Checkbutton(
+                agility_methods_window, text=method_name.capitalize(), variable=method_var
+            )
+            check_button.pack(anchor="w")
+
+            # Build a tooltip text without including "name"
+            tooltip_text = f"{method_name.capitalize()}:\n"
+            if isinstance(method_data, dict):  # Handle nested structure
+                for level_range, details in method_data.items():
+                    if isinstance(details, dict):
+                        xp_per_hour = details.get("xp_per_hour", "N/A")
+                        requirements = details.get("requirements", {})
+                        tooltip_text += (
+                            f"  • Level {level_range}\n"
+                            f"      XP/hr: {xp_per_hour}\n"
+                            f"      Requirements: {', '.join(f'{k.capitalize()}: {v}' for k, v in requirements.items()) or 'None'}\n"
+                        )
+            else:  # Handle flat structure (if any)
+                xp_per_hour = method_data.get("xp_per_hour", "N/A")
+                requirements = method_data.get("requirements", {})
+                tooltip_text += (
+                    f"  • XP/hr: {xp_per_hour}\n"
+                    f"      Requirements: {', '.join(f'{k.capitalize()}: {v}' for k, v in requirements.items()) or 'None'}"
+                )
+
+            # Add tooltip to the checkbox
+            ToolTip(check_button, tooltip_text)
 
 def open_combat_methods(method_name):
     """Opens a new window for selecting skills and setting min/max levels for a combat method."""
@@ -224,25 +112,38 @@ def open_combat_methods(method_name):
         "Cannon": ["Ranged"]
     }
 
-    # Create labels for "Min", "Max", and "Weight" columns
-    tk.Label(combat_methods_window, text="Min").grid(row=0, column=1, padx=2, pady=2)
-    tk.Label(combat_methods_window, text="Max").grid(row=0, column=2, padx=2, pady=2)
-    tk.Label(combat_methods_window, text="Weight").grid(row=0, column=3, padx=2, pady=2)
+    ttk.Label(combat_methods_window, text="Min").grid(row=0, column=1, padx=2, pady=2)
+    ttk.Label(combat_methods_window, text="Max").grid(row=0, column=2, padx=2, pady=2)
+    ttk.Label(combat_methods_window, text="Weight").grid(row=0, column=3, padx=2, pady=2)
 
     row = 1
     for skill in skills.get(method_name, []):
-        # Ensure the skill dictionary exists
         if skill not in method_vars[method_name]:
             method_vars[method_name][skill] = {}
 
-        # Use existing variable if it exists
         if "selected" not in method_vars[method_name][skill]:
             method_vars[method_name][skill]["selected"] = tk.BooleanVar(value=False)
-        
-        method_checkbutton = tk.Checkbutton(combat_methods_window, text=skill, variable=method_vars[method_name][skill]["selected"])
+
+        method_checkbutton = ttk.Checkbutton(combat_methods_window, text=skill, variable=method_vars[method_name][skill]["selected"])
         method_checkbutton.grid(row=row, column=0, sticky="w", padx=2, pady=2)
 
-        # Create and store StringVar variables for min, max, and weight levels
+        # Add tooltip with XP per hour and requirements
+        tooltip_text = f"Train {skill} using {method_name} method.\n"
+        if skill.lower() in SKILLS and "methods" in SKILLS[skill.lower()]:
+            method_data = SKILLS[skill.lower()]["methods"].get(method_name.lower(), {})
+            for level_range, details in method_data.items():
+                if isinstance(details, dict):
+                    name = details.get("name", "Unknown")
+                    xp_per_hour = details.get("xp_per_hour", "N/A")
+                    requirements = details.get("requirements", {})
+                    req_text = "\n".join(f"      - {k.capitalize()}: {v}" for k, v in requirements.items()) or "      - None"
+                    tooltip_text += (
+                        f"  • Level {level_range}: {name}\n"
+                        f"      XP/hr: {xp_per_hour}\n"
+                        f"      Requirements:\n{req_text}\n"
+                    )
+        ToolTip(method_checkbutton, tooltip_text)
+
         if "min" not in method_vars[method_name][skill]:
             method_vars[method_name][skill]["min"] = tk.StringVar()
         if "max" not in method_vars[method_name][skill]:
@@ -250,75 +151,96 @@ def open_combat_methods(method_name):
         if "weight" not in method_vars[method_name][skill]:
             method_vars[method_name][skill]["weight"] = tk.StringVar()
 
-        # Add entry boxes for min, max, and weight levels
-        tk.Entry(combat_methods_window, textvariable=method_vars[method_name][skill]["min"], width=3, validate="key", validatecommand=vcmd).grid(row=row, column=1, padx=2, pady=2)
-        tk.Entry(combat_methods_window, textvariable=method_vars[method_name][skill]["max"], width=3, validate="key", validatecommand=vcmd).grid(row=row, column=2, padx=2, pady=2)
-        tk.Entry(combat_methods_window, textvariable=method_vars[method_name][skill]["weight"], width=3, validate="key", validatecommand=vcmd).grid(row=row, column=3, padx=2, pady=2)
+        ttk.Entry(combat_methods_window, textvariable=method_vars[method_name][skill]["min"], width=3, validate="key", validatecommand=vcmd).grid(row=row, column=1, padx=2, pady=2)
+        ttk.Entry(combat_methods_window, textvariable=method_vars[method_name][skill]["max"], width=3, validate="key", validatecommand=vcmd).grid(row=row, column=2, padx=2, pady=2)
+        ttk.Entry(combat_methods_window, textvariable=method_vars[method_name][skill]["weight"], width=3, validate="key", validatecommand=vcmd).grid(row=row, column=3, padx=2, pady=2)
 
         row += 1
 
-    # Add a save button
-    save_button = tk.Button(combat_methods_window, text="Save", command=lambda: save_combat_methods(method_name, combat_methods_window))
+    save_button = ttk.Button(combat_methods_window, text="Save", command=lambda: save_combat_methods(method_name, combat_methods_window))
     save_button.grid(row=row, column=0, columnspan=4, pady=5)
 
-    # Keep track of open windows
     open_combat_windows[method_name] = combat_methods_window
 
-def save_combat_methods(method_name, window):
-    """Saves the combat method settings, performs validation, and checks requirements."""
-    error_messages = []  # Store error messages for display in a single message box
 
-    # Mapping from method name to required skills
+def save_combat_methods(method_name, window):
+    """Saves the combat method settings, validates inputs, checks requirements, and handles missing selections."""
+    error_messages = []
+    missing_selections = []
     method_requirements = {
-        "Rat": {"Attack": 50, "Strength": 50, "Ranged": 50, "Defence": 40, "Longranged": 40},
-        "Nmz": {"Attack": 60, "Strength": 60, "Ranged": 50, "Defence": 40},
+        "Rat": {"Attack": 50, "Strength": 50},
+        "Nmz": {"Attack": 60, "Strength": 60},
         "Crab": {},
         "Slay": {},
         "Cannon": {}
     }
 
     for skill, settings in method_vars[method_name].items():
-        if isinstance(settings, dict) and settings["selected"].get():
-            min_level_str = settings["min"].get()
-            max_level_str = settings["max"].get()
-            weight_str = settings["weight"].get()  # Get the weight value
+        if not isinstance(settings, dict):
+            continue
 
-            # Check if min, max, and weight are provided
-            if not min_level_str or not max_level_str or not weight_str:
-                error_messages.append(f"Min, Max, and Weight values must be set for {method_name} - {skill}.\n")
+        min_level_str = settings["min"].get()
+        max_level_str = settings["max"].get()
+        weight_str = settings.get("weight", tk.StringVar()).get()  # Weight is optional
+        selected = settings["selected"].get()
+
+        if (min_level_str or max_level_str) and not selected:
+            missing_selections.append(skill)
+            continue
+
+        if selected:
+            # Validate inputs
+            if not min_level_str or not max_level_str:
+                error_messages.append(f"Min and Max values must be set for {method_name} - {skill}.")
                 continue
 
             try:
                 min_level = int(min_level_str)
                 max_level = int(max_level_str)
-                weight = int(weight_str)  # Convert weight to integer
             except ValueError:
-                error_messages.append(f"Min, Max, and Weight values must be integers for {method_name} - {skill}.\n")
+                error_messages.append(f"Min and Max values must be integers for {method_name} - {skill}.")
                 continue
 
             if min_level < 1 or max_level > 99:
-                error_messages.append(f"Min and Max levels must be between 1 and 99 for {method_name} - {skill}.\n")
-                continue
+                 error_messages.append(f"Min and Max levels must be between 1 and 99 for {method_name} - {skill}.")
+                 continue
 
             if min_level > max_level:
-                error_messages.append(f"Min level cannot be greater than Max level for {method_name} - {skill}.\n")
+                error_messages.append(f"Min level cannot be greater than Max level for {method_name} - {skill}.")
                 continue
-
-            # Check against requirements
+            
             if method_name in method_requirements:
                 for req_skill, req_level in method_requirements[method_name].items():
                     if skill.lower() == req_skill.lower() and min_level < req_level:
-                        error_messages.append(f"{method_name} requires {req_skill} level {req_level} (You set Min: {min_level}).\n")
-                        break
+                        error_messages.append(
+                            f"{method_name} requires {req_skill} level {req_level} "
+                            f"(You set Min: {min_level})."
+                        )
+                        
+            if not error_messages: # Save only if there are no errors
+                # Save validated settings
+                settings["min"] = str(min_level)
+                settings["max"] = str(max_level)
+                settings["weight"] = str(weight_str) if weight_str else "1"  # Default weight is 1 if not provided
 
-            # Store weight in method_vars
-            settings["weight"] = weight_str
-
+    # Handle missing selections
+    if missing_selections:
+        confirm = messagebox.askyesno(
+            "Missing Selections",
+            f"You have entered Min/Max for the following skills but did not enable them:\n\n"
+            f"{', '.join(missing_selections)}\n\n"
+            f"Do you want to save these settings anyway?"
+        )
+        if not confirm:
+            return  # User chose to go back and review settings
+    
+    # Display errors if any
     if error_messages:
-        # Display a single error message box with all errors
         messagebox.showerror("Error", "\n".join(error_messages))
-    else:
-        window.destroy()  # Close the window only if there are no errors
+    elif not missing_selections or confirm: # Only show success if theres no error messages and no missing selections or they accepted to save with missing selections.
+        messagebox.showinfo("Success", f"Settings for {method_name} saved.")
+        window.destroy()
+
 
 class ToolTip:
     def __init__(self, widget, text):
@@ -345,12 +267,53 @@ class ToolTip:
             self.tooltip.destroy()
         self.tooltip = None
 
-root = tk.Tk()
+
+def load_default_theme():
+    """Loads the default theme from the config file, or the default if no file."""
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, "r") as f:
+            theme_name = f.readline().strip()
+            return theme_name
+    return "clam"  # Default if no file or invalid theme
+
+
+def save_default_theme():
+    """Saves the selected theme to the config file."""
+    selected_theme = theme_var.get()
+    with open(CONFIG_FILE, "w") as f:
+        f.write(selected_theme)
+    messagebox.showinfo("Default Theme", f"Default theme set to: {selected_theme}")
+
+
+def apply_initial_theme(root, default_theme):
+    """Applies the default theme after the mainloop has started."""
+    root.set_theme(default_theme)
+    theme_var.set(default_theme)
+
+# --- Main Application Setup (ThemedTk) ---
+default_theme = load_default_theme()
+root = ThemedTk(theme="clam")  # Initialize with a default, we will reset it in the after call
 root.title("OSRS Account Planner")
 
+# Load themes before we load the root window
+theme_names = root.get_themes()
+
+# --- Theme Selection Dropdown ---
+theme_var = tk.StringVar(value="clam")  # Set initial theme - default needed here
+theme_menu = ttk.OptionMenu(root, theme_var, *theme_names, command=lambda _: root.set_theme(theme_var.get()))
+theme_menu.grid(row=0, column=0, sticky="nw")
+
+
+default_button = ttk.Button(root, text="Set Default", command=save_default_theme)
+default_button.grid(row=0, column=1, sticky="nw", padx=5)
+
+
+# Use after to load the correct default theme
+root.after(100, apply_initial_theme, root, default_theme)
+
 # --- Skills Frame ---
-skills_frame = tk.LabelFrame(root, text="Skills")
-skills_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+skills_frame = ttk.LabelFrame(root, text="Skills")
+skills_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
 skill_vars = {}
 method_vars = {}
@@ -369,10 +332,10 @@ for skill in skills_order:
         skill_vars[skill] = tk.StringVar()
         method_vars[skill] = {}
 
-        skill_label = tk.Label(skills_frame, text=skill)
+        skill_label = ttk.Label(skills_frame, text=skill)
         skill_label.grid(row=row, column=col, sticky="w", padx=2)
 
-        skill_entry = tk.Entry(skills_frame, textvariable=skill_vars[skill], width=3, validate="key", validatecommand=vcmd)
+        skill_entry = ttk.Entry(skills_frame, textvariable=skill_vars[skill], width=3, validate="key", validatecommand=vcmd)
         skill_entry.grid(row=row, column=col + 1, padx=2, pady=2)
 
         row += 1
@@ -381,8 +344,8 @@ for skill in skills_order:
             col += 2
 
 # --- Training Methods Frame ---
-methods_frame = tk.LabelFrame(root, text="Training Methods")
-methods_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+methods_frame = ttk.LabelFrame(root, text="Training Methods")
+methods_frame.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
 
 # Initialize method_vars
 for method in ["Agility", "Crab", "Nmz", "Rat", "Slay", "Cannon", "Fruit"]:
@@ -392,10 +355,12 @@ method_row = 0
 
 # Special handling for Agility
 method_vars["Agility"]["selected"] = tk.BooleanVar(value=False)
-agility_checkbox = tk.Checkbutton(methods_frame, variable=method_vars["Agility"]["selected"], command=open_agility_methods)
+agility_checkbox = ttk.Checkbutton(
+    methods_frame, text="Agility", variable=method_vars["Agility"]["selected"]
+)
 agility_checkbox.grid(row=method_row, column=0, sticky="w", padx=2, pady=2)
 
-agility_button = tk.Button(methods_frame, text="Agility Methods", command=open_agility_methods)
+agility_button = ttk.Button(methods_frame, text="Agility Methods", command=open_agility_methods)
 agility_button.grid(row=method_row, column=1, sticky="w", padx=2, pady=2)
 method_row += 1
 
@@ -403,61 +368,74 @@ method_row += 1
 combat_methods = ["Crab", "Nmz", "Rat", "Slay", "Cannon"]
 for method in combat_methods:
     method_vars[method]["selected"] = tk.BooleanVar(value=False)
-    method_checkbox = tk.Checkbutton(methods_frame, variable=method_vars[method]["selected"], command=lambda m=method: open_combat_methods(m))
+    method_checkbox = ttk.Checkbutton(
+        methods_frame, text=method, variable=method_vars[method]["selected"]
+    )
     method_checkbox.grid(row=method_row, column=0, sticky="w", padx=2, pady=2)
 
-    method_button = tk.Button(methods_frame, text=method, command=lambda m=method: open_combat_methods(m))
+    method_button = ttk.Button(methods_frame, text=f"{method} Methods", command=lambda m=method: open_combat_methods(m))
     method_button.grid(row=method_row, column=1, sticky="w", padx=2, pady=2)
     method_row += 1
 
 # Fruit method (Thieving)
 method_vars["Fruit"]["selected"] = tk.BooleanVar(value=False)
-fruit_checkbox = tk.Checkbutton(methods_frame, variable=method_vars["Fruit"]["selected"])
+fruit_checkbox = ttk.Checkbutton(
+    methods_frame, text="Fruit (Thieving)", variable=method_vars["Fruit"]["selected"]
+)
 fruit_checkbox.grid(row=method_row, column=0, sticky="w", padx=2, pady=2)
 
-fruit_label = tk.Label(methods_frame, text="Fruit (Thieving)")
+fruit_label = ttk.Label(methods_frame, text="Fruit Methods")
 fruit_label.grid(row=method_row, column=1, sticky="w", padx=2, pady=2)
 method_row += 1
+
 
 # Dictionary to track open combat method windows
 open_combat_windows = {}
 
 # --- Quests Frame ---
-quests_frame = tk.LabelFrame(root, text="Quests")
-quests_frame.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
+quests_frame = ttk.LabelFrame(root, text="Quests")
+quests_frame.grid(row=2, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
 
 quest_vars = {}
 row = 0
 col = 0
 for quest_key, quest_data in QUESTS.items():
     quest_vars[quest_key] = tk.BooleanVar(value=False)
-    quest_checkbutton = tk.Checkbutton(quests_frame, text=quest_data["name"], variable=quest_vars[quest_key])
+    quest_checkbutton = ttk.Checkbutton(quests_frame, text=quest_data["name"], variable=quest_vars[quest_key])
     quest_checkbutton.grid(row=row, column=col, sticky="w", padx=2)
     row += 1
-    if row >= 20:
+    if row >= 18:
         row = 0
         col += 1
 
 # --- Buttons Frame ---
-buttons_frame = tk.Frame(root)
-buttons_frame.grid(row=2, column=0, columnspan=2, padx=10, pady=10, sticky="ew")
+buttons_frame = ttk.Frame(root)
+buttons_frame.grid(row=3, column=0, columnspan=2, padx=10, pady=10, sticky="ew")
 
-generate_button = tk.Button(buttons_frame, text="Generate Plan", command=generate_plan)
-generate_button.pack(side="left", padx=5)
+generate_button = ttk.Button(buttons_frame, text="Generate Plan", command=generate_plan)
+generate_button.grid(row=0, column=0, padx=5, pady=10, sticky="ew")
 
-copy_button = tk.Button(buttons_frame, text="Copy to Clipboard", command=copy_to_clipboard)
-copy_button.pack(side="left", padx=5)
+copy_button = ttk.Button(buttons_frame, text="Copy to Clipboard", command=copy_to_clipboard)
+copy_button.grid(row=0, column=1, padx=5, pady=10, sticky="ew")
 
-# --- Output Frame ---
-output_frame = tk.LabelFrame(root, text="Output")
-output_frame.grid(row=3, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
+# Configure column weights so buttons resize
+buttons_frame.columnconfigure(0, weight=1)
+buttons_frame.columnconfigure(1, weight=1)
+
+# --- Output & Error Frame ---
+output_frame = ttk.LabelFrame(root, text="Output")
+output_frame.grid(row=4, column=0, padx=10, pady=10, sticky="nsew")
+
+error_frame = ttk.LabelFrame(root, text="Errors/Warnings")
+error_frame.grid(row=4, column=1, padx=10, pady=10, sticky="nsew")
+
+# Configure row weights so they share the vertical space
+root.rowconfigure(4, weight=1)
+
 
 output_text = tk.Text(output_frame, wrap="word", state="normal")
 output_text.pack(expand=True, fill="both")
 
-# --- Error/Warning Frame ---
-error_frame = tk.LabelFrame(root, text="Errors/Warnings")
-error_frame.grid(row=4, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
 
 error_text = tk.Text(error_frame, wrap="word", state="normal", height=5)
 error_text.pack(expand=True, fill="both")
@@ -481,9 +459,9 @@ for skill_key, skill_data in SKILLS.items():
 
         # Find the corresponding label and entry widgets
         for widget in skills_frame.winfo_children():
-            if isinstance(widget, tk.Label) and widget.cget("text").lower() == skill_key:
+            if isinstance(widget, ttk.Label) and widget.cget("text").lower() == skill_key:
                 ToolTip(widget, tooltip_text)
-            elif isinstance(widget, tk.Entry) and widget == skill_entry:
+            elif isinstance(widget, ttk.Entry) and widget == skill_entry:
                 ToolTip(widget, tooltip_text)
 
 for quest_key, quest_data in QUESTS.items():
@@ -516,8 +494,9 @@ for quest_key, quest_data in QUESTS.items():
 
     # Find the corresponding checkbutton widget
     for widget in quests_frame.winfo_children():
-        if isinstance(widget, tk.Checkbutton) and widget.cget("text") == quest_data["name"]:
+        if isinstance(widget, ttk.Checkbutton) and widget.cget("text") == quest_data["name"]:
             ToolTip(widget, tooltip_text)
             break
+
 
 root.mainloop()

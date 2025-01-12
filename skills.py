@@ -21,25 +21,25 @@ SKILLS = {
                 "1-99": {"name": "Draynor Village Rooftop Course", "xp_per_hour": 9000, "requirements": {"agility": 1}}
             },
             "varrock": {
-                "1-99": {"name": "Varrock Rooftop Course", "xp_per_hour": 13000, "requirements": {"agility": 30}}
+                "30-99": {"name": "Varrock Rooftop Course", "xp_per_hour": 13000, "requirements": {"agility": 30}}
             },
             "canifis": {
-                "1-99": {"name": "Canifis Rooftop Course", "xp_per_hour": 19000, "requirements": {"agility": 40}}
+                "40-99": {"name": "Canifis Rooftop Course", "xp_per_hour": 19000, "requirements": {"agility": 40}}
             },
             "falador": {
-                "1-99": {"name": "Falador Rooftop Course", "xp_per_hour": 45000, "requirements": {"agility": 50}}
+                "50-99": {"name": "Falador Rooftop Course", "xp_per_hour": 45000, "requirements": {"agility": 50}}
             },
             "seers": {
-                "1-99": {"name": "Seers' Village Rooftop Course", "xp_per_hour": 57000, "requirements": {"agility": 60}}
+                "60-99": {"name": "Seers' Village Rooftop Course", "xp_per_hour": 57000, "requirements": {"agility": 60}}
             },
             "polly": {
-                "1-99": {"name": "Pollnivneach Rooftop Course", "xp_per_hour": 54000, "requirements": {"agility": 70}}
+                "70-99": {"name": "Pollnivneach Rooftop Course", "xp_per_hour": 54000, "requirements": {"agility": 70}}
             },
             "relleka": {
-                "1-99": {"name": "Rellekka Rooftop Course", "xp_per_hour": 60000, "requirements": {"agility": 80}}
+                "80-99": {"name": "Rellekka Rooftop Course", "xp_per_hour": 60000, "requirements": {"agility": 80}}
             },
             "ardy": {
-                "1-99": {"name": "Ardougne Rooftop Course", "xp_per_hour": 60000, "requirements": {"agility": 90}}
+                "90-99": {"name": "Ardougne Rooftop Course", "xp_per_hour": 60000, "requirements": {"agility": 90}}
             }
         },
         "default_method": "default"
@@ -205,10 +205,10 @@ SKILLS = {
                 "1-99": {"name": "Sand Crabs", "xp_per_hour": 30000, "requirements": {}}
             },
             "nmz": {
-                "1-99": {"name": "Nightmare Zone", "xp_per_hour": 100000, "requirements": {"attack": 60, "strength": 60}}
+                "40-99": {"name": "Nightmare Zone", "xp_per_hour": 100000, "requirements": {"attack": 60, "strength": 60}}
             },
             "rat": {
-                "1-99": {"name": "Scurrius", "xp_per_hour": 45000, "requirements": {"attack": 50, "strength": 50}}
+                "40-99": {"name": "Scurrius", "xp_per_hour": 45000, "requirements": {"attack": 50, "strength": 50}}
             },
             "slay": {
                 "1-99": {"name": "Slayer", "xp_per_hour": 30000, "requirements": {}}
@@ -222,10 +222,10 @@ SKILLS = {
                 "1-99": {"name": "Sand Crabs", "xp_per_hour": 30000, "requirements": {}}
             },
             "nmz": {
-                "1-99": {"name": "Nightmare Zone", "xp_per_hour": 100000, "requirements": {"attack": 60, "strength": 60}}
+                "40-99": {"name": "Nightmare Zone", "xp_per_hour": 100000, "requirements": {"attack": 60, "strength": 60}}
             },
             "rat": {
-                "1-99": {"name": "Scurrius", "xp_per_hour": 45000, "requirements": {"attack": 50, "strength": 50}}
+                "40-99": {"name": "Scurrius", "xp_per_hour": 45000, "requirements": {"attack": 50, "strength": 50}}
             },
             "slay": {
                 "1-99": {"name": "Slayer", "xp_per_hour": 30000, "requirements": {}}
@@ -239,10 +239,10 @@ SKILLS = {
                 "1-99": {"name": "Sand Crabs", "xp_per_hour": 30000, "requirements": {}}
             },
             "nmz": {
-                "1-99": {"name": "Nightmare Zone", "xp_per_hour": 100000, "requirements": {"attack": 60, "strength": 60}}
+                "40-99": {"name": "Nightmare Zone", "xp_per_hour": 100000, "requirements": {"attack": 60, "strength": 60}}
             },
             "rat": {
-                "1-99": {"name": "Scurrius", "xp_per_hour": 45000, "requirements": {"attack": 50, "strength": 50}}
+                "40-99": {"name": "Scurrius", "xp_per_hour": 45000, "requirements": {"attack": 50, "strength": 50}}
             },
             "slay": {
                 "1-99": {"name": "Slayer", "xp_per_hour": 30000, "requirements": {}}
@@ -256,10 +256,10 @@ SKILLS = {
                 "1-99": {"name": "Sand Crabs", "xp_per_hour": 30000, "requirements": {}}
             },
             "nmz": {
-                "1-99": {"name": "Nightmare Zone", "xp_per_hour": 100000, "requirements": {"ranged": 50, "defence": 40}}
+                "40-99": {"name": "Nightmare Zone", "xp_per_hour": 100000, "requirements": {"ranged": 50, "defence": 40}}
             },
             "rat": {
-                "1-99": {"name": "Scurrius", "xp_per_hour": 45000, "requirements": {"ranged": 50, "defence": 40}}
+                "40-99": {"name": "Scurrius", "xp_per_hour": 45000, "requirements": {"ranged": 50, "defence": 40}}
             },
             "slay": {
                 "1-99": {"name": "Slayer", "xp_per_hour": 30000, "requirements": {}}
@@ -276,7 +276,7 @@ SKILLS = {
                 "1-99": {"name": "Sand Crabs", "xp_per_hour": 30000, "requirements": {}}
             },
             "rat": {
-                "1-99": {"name": "Scurrius", "xp_per_hour": 45000, "requirements": {"ranged": 50, "defence": 40}}
+                "40-99": {"name": "Scurrius", "xp_per_hour": 45000, "requirements": {"ranged": 50, "defence": 40}}
             },
             "slay": {
                 "1-99": {"name": "Slayer", "xp_per_hour": 30000, "requirements": {}}
